@@ -194,7 +194,11 @@ var convertValue = module.exports.convertValue = function (value, schema, type, 
       case 'csv':
       case undefined:
         try {
-          value = JSON.parse(value);
+          if (schema.items == undefined || 
+             schema.items == null || 
+             schema.items.type !== 'string') {
+            value = JSON.parse(value);
+          }
         } catch (err) {
           value = original;
         }
