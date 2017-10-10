@@ -196,7 +196,14 @@ var convertValue = module.exports.convertValue = function (value, schema, type, 
         try {
           value = JSON.parse(value);
         } catch (err) {
-          value = original;
+          try {
+            // Retry making the list an array
+            value = '[' + original + ']';
+            value = JSON.parse(value);
+          }
+          catch(err) {
+            value = original;
+          }
         }
 
         if (_.isString(value)) {
@@ -289,7 +296,8 @@ var convertValue = module.exports.convertValue = function (value, schema, type, 
     break;
 
   case 'string':
-    if(!_.isDate(value)) {
+    var isValueDate = _.isDate(value);
+    if(!isValueDate) {
       var isDate = schema.format === 'date' && validators.isValidDate(value);
       var isDateTime = schema.format === 'date-time' && validators.isValidDateTime(value);
       if (isDate || isDateTime) {
@@ -298,9 +306,17 @@ var convertValue = module.exports.convertValue = function (value, schema, type, 
         if (!_.isDate(value) || value.toString() === 'Invalid Date') {
           value = original;
         }
+        else {
+          isValueDate = true;
+        }
       }
     }
-
+    
+    // Making sure that it returns a string
+    if (!isValueDate && !_.isString(value)) {
+        value = JSON.stringify(value);
+    }
+      
     break;
 
   }
